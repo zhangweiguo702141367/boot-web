@@ -3,6 +3,7 @@ package com.boot.entity.jpa;
 import javax.persistence.*;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -11,16 +12,21 @@ import java.util.List;
 @Entity
 @Table(name = "user")
 public class User implements Serializable{
+    private static final long serialVersionUID = 1L;
+    //0:禁止登录
+    public static final Long _0 = new Long(0);
+    //1:有效
+    public static final Long _1 = new Long(1);
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private Integer id;
+    private Long id;
     private String nickname;
     private String email;
     private String pswd;
     @Column(name="create_time")
     private Long createTime;
     @Column(name = "last_login_time")
-    private Long lastLoginTime;
+    private Date lastLoginTime;
     private boolean status;
     @JoinTable(name="user_role",//中间表的名称
             joinColumns={@JoinColumn(name="userId",referencedColumnName="id")},//中间表PRODUCT_ID字段关联PRODUCT的ID
@@ -31,8 +37,16 @@ public class User implements Serializable{
     public User(){
         super();
     }
+    public User(User user) {
+        this.id = user.getId();
+        this.nickname = user.getNickname();
+        this.email = user.getEmail();
+        this.pswd = user.getPswd();
+        this.createTime = user.getCreateTime();
+        this.lastLoginTime = user.getLastLoginTime();
+    }
 
-    public User(String nickname, String email, String pswd, Long createTime, Long lastLoginTime, boolean status, List<Role> roles) {
+    public User(String nickname, String email, String pswd, Long createTime, Date lastLoginTime, boolean status, List<Role> roles) {
         this.nickname = nickname;
         this.email = email;
         this.pswd = pswd;
@@ -42,11 +56,11 @@ public class User implements Serializable{
         this.roles = roles;
     }
 
-    public Integer getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(Integer id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
@@ -82,11 +96,11 @@ public class User implements Serializable{
         this.createTime = createTime;
     }
 
-    public Long getLastLoginTime() {
+    public Date getLastLoginTime() {
         return lastLoginTime;
     }
 
-    public void setLastLoginTime(Long lastLoginTime) {
+    public void setLastLoginTime(Date lastLoginTime) {
         this.lastLoginTime = lastLoginTime;
     }
 

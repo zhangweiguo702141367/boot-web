@@ -5,10 +5,10 @@ import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
+import com.boot.utils.SerializeUtil;
+import com.boot.utils.SpringUtil;
 import redis.clients.jedis.Jedis;
 
-import com.sojson.common.utils.SerializeUtil;
-import com.sojson.common.utils.SpringContextUtil;
 /**
  * 
  * 开发公司：SOJSON在线工具 <p>
@@ -31,7 +31,7 @@ import com.sojson.common.utils.SpringContextUtil;
 @SuppressWarnings("unchecked")
 public class VCache {
 
-	final static JedisManager J = SpringContextUtil.getBean("jedisManager", JedisManager.class);
+	final static JedisManager J = SpringUtil.getBean("jedisManager", JedisManager.class);
 	private VCache() {}
 	
 	/**
@@ -189,8 +189,6 @@ public class VCache {
 	 * 
 	 * @param <T>
 	 * @param setKey
-	 * @param start
-	 * @param end
 	 * @param requiredType
 	 * @return
 	 */

@@ -4,15 +4,15 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.boot.utils.LoggerUtils;
+import com.boot.utils.SerializeUtil;
+import com.boot.utils.StringUtils;
 import org.apache.shiro.session.Session;
 
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.exceptions.JedisConnectionException;
 
-import com.sojson.common.utils.LoggerUtils;
-import com.sojson.common.utils.SerializeUtil;
-import com.sojson.common.utils.StringUtils;
 
 /**
  * 
@@ -42,7 +42,7 @@ public class JedisManager {
         try {
             jedis = getJedisPool().getResource();
         } catch (JedisConnectionException e) {
-        	String message = StringUtils.trim(e.getMessage());
+        	String message = StringUtils.trimToEmpty(e.getMessage());
         	if("Could not get a resource from the pool".equalsIgnoreCase(message)){
         		System.out.println("++++++++++请检查你的redis服务++++++++");
         		System.out.println("|①.请检查是否安装redis服务，如果没安装，Windos 请参考Blog：http://www.sojson.com/blog/110.html|");
@@ -154,7 +154,7 @@ public class JedisManager {
             Set<byte[]> byteKeys = jedis.keys((JedisShiroSessionRepository.REDIS_SHIRO_ALL).getBytes());  
             if (byteKeys != null && byteKeys.size() > 0) {  
                 for (byte[] bs : byteKeys) {  
-                	Session obj = SerializeUtil.deserialize(jedis.get(bs),  
+                	Session obj = SerializeUtil.deserialize(jedis.get(bs),
                     		 Session.class);  
                      if(obj instanceof Session){
                     	 sessions.add(obj);  

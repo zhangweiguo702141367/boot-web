@@ -9,6 +9,8 @@ import java.util.Map;
 import java.util.Set;
 
 import com.boot.core.shiro.CustomShiroSessionDAO;
+import com.boot.entity.jpa.User;
+import com.boot.entity.session.UserOnlineBo;
 import com.boot.utils.LoggerUtils;
 import com.boot.utils.StringUtils;
 import org.apache.shiro.session.Session;
@@ -86,8 +88,8 @@ public class CustomSessionManager {
 				SimplePrincipalCollection spc = (SimplePrincipalCollection)obj;
 				//判断用户，匹配用户ID。
 				obj = spc.getPrimaryPrincipal();
-				if(null != obj && obj instanceof UUser){
-					UUser user = (UUser)obj;
+				if(null != obj && obj instanceof User){
+					User user = (User)obj;
 					//比较用户ID，符合即加入集合
 					if(null != user && idset.contains(user.getId())){
 						list.add(spc);
@@ -124,9 +126,9 @@ public class CustomSessionManager {
 			 * return new SimpleAuthenticationInfo(user,user.getPswd(), getName());的user 对象。
 			 */
 			obj = spc.getPrimaryPrincipal();
-			if(null != obj && obj instanceof UUser){
+			if(null != obj && obj instanceof User){
 				//存储session + user 综合信息
-				UserOnlineBo userBo = new UserOnlineBo((UUser)obj);
+				UserOnlineBo userBo = new UserOnlineBo((User)obj);
 				//最后一次和系统交互的时间
 				userBo.setLastAccess(session.getLastAccessTime());
 				//主机的ip地址
@@ -154,7 +156,7 @@ public class CustomSessionManager {
 	/**
 	 * 改变Session状态
 	 * @param status {true:踢出,false:激活}
-	 * @param sessionId
+	 * @param sessionIds
 	 * @return
 	 */
 	public Map<String, Object> changeSessionStatus(Boolean status,

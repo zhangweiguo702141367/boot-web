@@ -6,11 +6,11 @@ import java.util.Map;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 
+import com.boot.core.shiro.tooken.manager.TokenManager;
+import com.boot.entity.jpa.User;
+import com.boot.utils.LoggerUtils;
 import org.apache.shiro.web.filter.AccessControlFilter;
 
-import com.sojson.common.model.UUser;
-import com.sojson.common.utils.LoggerUtils;
-import com.sojson.core.shiro.token.manager.TokenManager;
 /**
  * 
  * 开发公司：SOJSON在线工具 <p>
@@ -36,7 +36,7 @@ public class LoginFilter  extends AccessControlFilter {
 	protected boolean isAccessAllowed(ServletRequest request,
 			ServletResponse response, Object mappedValue) throws Exception {
 		
-		UUser token = TokenManager.getToken();
+		User token = TokenManager.getToken();
 		
 		if(null != token || isLoginRequest(request, response)){// && isEnabled()
             return Boolean.TRUE;

@@ -11,10 +11,11 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 
+import com.alibaba.fastjson.JSONObject;
 import com.boot.core.shiro.cache.VCache;
 import com.boot.core.shiro.session.ShiroSessionRepository;
+import com.boot.core.shiro.tooken.manager.TokenManager;
 import com.boot.utils.LoggerUtils;
-import net.sf.json.JSONObject;
 
 import org.apache.shiro.session.Session;
 import org.apache.shiro.subject.Subject;
@@ -149,7 +150,7 @@ public class KickoutSessionFilter extends AccessControlFilter {
 		try {
 			hresponse.setCharacterEncoding("UTF-8");
 			PrintWriter out = hresponse.getWriter();
-			out.println(JSONObject.fromObject(resultMap).toString());
+			out.println(JSONObject.toJSONString(resultMap));
 			out.flush();
 			out.close();
 		} catch (Exception e) {

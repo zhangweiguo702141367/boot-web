@@ -3,11 +3,11 @@ package com.boot.core.shiro.cache;
 import java.util.Collection;
 import java.util.Set;
 
+import com.boot.utils.LoggerUtils;
+import com.boot.utils.SerializeUtil;
 import org.apache.shiro.cache.Cache;
 import org.apache.shiro.cache.CacheException;
 
-import com.sojson.common.utils.LoggerUtils;
-import com.sojson.common.utils.SerializeUtil;
 
 /**
  * 

@@ -3,17 +3,21 @@ package com.boot.core.shiro.conf;
 import com.boot.core.shiro.CustomShiroSessionDAO;
 import com.boot.core.shiro.cache.JedisShiroSessionRepository;
 import com.boot.core.shiro.cache.impl.CustomShiroCacheManager;
+import com.boot.core.shiro.filter.*;
+import com.boot.core.shiro.listener.CustomSessionListener;
 import com.boot.core.shiro.session.CustomSessionManager;
 import com.boot.core.shiro.tooken.MyShiroRealm;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.cache.CacheManager;
 import org.apache.shiro.mgt.RememberMeManager;
+import org.apache.shiro.session.SessionListener;
 import org.apache.shiro.session.mgt.ExecutorServiceSessionValidationScheduler;
 import org.apache.shiro.session.mgt.SessionManager;
 import org.apache.shiro.session.mgt.SessionValidationScheduler;
 import org.apache.shiro.session.mgt.eis.JavaUuidSessionIdGenerator;
 import org.apache.shiro.session.mgt.eis.SessionIdGenerator;
 import org.apache.shiro.spring.LifecycleBeanPostProcessor;
+import org.apache.shiro.spring.web.ShiroFilterFactoryBean;
 import org.apache.shiro.web.mgt.CookieRememberMeManager;
 import org.apache.shiro.web.mgt.DefaultWebSecurityManager;
 import org.apache.shiro.web.servlet.SimpleCookie;
@@ -24,6 +28,9 @@ import org.springframework.beans.factory.config.MethodInvokingFactoryBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import javax.servlet.Filter;
+import java.util.*;
+
 /**
  * Created by 70214 on 2017/3/25.
  */
@@ -31,6 +38,27 @@ import org.springframework.context.annotation.Configuration;
 public class ShiroConfiguration {
     private static Logger logger = LoggerFactory.getLogger(ShiroConfiguration.class);
 
+    @Bean
+    public ShiroFilterFactoryBean shiroFilter(){
+        ShiroFilterFactoryBean shiroFilter = new ShiroFilterFactoryBean();
+        shiroFilter.setSecurityManager(securityManager());
+        shiroFilter.setLoginUrl();
+        shiroFilter.setSuccessUrl();
+        shiroFilter.setUnauthorizedUrl();
+        Map<String,Filter> filters = new HashMap<String,Filter>();
+        filters.put("login",loginFilter());
+        filters.put("role",roleFilter());
+        filters.put("simple",simpleAuthFilter());
+        filters.put("permission",permissionFilter());
+        filters.put("kickout",kickoutSessionFilter());
+        shiroFilter.setFilters(filters);
+        Map<String,String> filterChainDefinitionMap = new LinkedHashMap<String,String>();
+        //配置退出过滤器,其中的具体的退出代码Shiro已经替我们实现了
+        filterChainDefinitionMap.put("/logout", "logout");
+        filterChainDefinitionMap.put("/login", "authc");
+        shiroFilter.setFilterChainDefinitionMap(filterChainDefinitionMap);
+        return shiroFilter;
+    }
     /**
      * 安全管理器
      * @return
@@ -59,7 +87,9 @@ public class ShiroConfiguration {
         sessionManager.setSessionValidationInterval(1800000L);
         sessionManager.setGlobalSessionTimeout(1800000L);
         sessionManager.setSessionDAO(customShiroSessionDAO());
-        sessionManager.setSessionListeners();
+        List<SessionListener> listenerList = new ArrayList<SessionListener>();
+        listenerList.add(customSessionListener());
+        sessionManager.setSessionListeners(listenerList);
         sessionManager.setSessionValidationScheduler(sessionValidationScheduler());
         sessionManager.setSessionValidationSchedulerEnabled(true);
         sessionManager.setDeleteInvalidSessions(true);
@@ -86,7 +116,7 @@ public class ShiroConfiguration {
     @Bean
     public MethodInvokingFactoryBean methodInvokingFactoryBean(){
         MethodInvokingFactoryBean methodInvokingFactoryBean =  new MethodInvokingFactoryBean();
-        methodInvokingFactoryBean.setArguments(securityManager());
+        methodInvokingFactoryBean.setArguments();
         methodInvokingFactoryBean.setStaticMethod(SecurityUtils.setSecurityManager());
     }
     @Bean
@@ -133,7 +163,36 @@ public class ShiroConfiguration {
     public SessionValidationScheduler sessionValidationScheduler(){
         ExecutorServiceSessionValidationScheduler sessionValidationScheduler = new ExecutorServiceSessionValidationScheduler();
         sessionValidationScheduler.setInterval(18000000);
-        sessionValidationScheduler.setSessionManager(sessionManager());
+        sessionValidationScheduler.setSessionManager();
         return sessionValidationScheduler;
+    }
+    @Bean
+    public CustomSessionListener customSessionListener(){
+        CustomSessionListener customSessionListener = new CustomSessionListener();
+        customSessionListener.setShiroSessionRepository(jedisShiroSessionRepository());
+        return customSessionListener;
+    }
+    //拦截器
+    @Bean
+    public LoginFilter loginFilter(){
+        return new LoginFilter();
+    }
+    @Bean
+    public RoleFilter roleFilter(){
+        return new RoleFilter();
+    }
+    @Bean
+    public PermissionFilter permissionFilter(){
+        return new PermissionFilter();
+    }
+    @Bean
+    public SimpleAuthFilter simpleAuthFilter(){
+        return new SimpleAuthFilter();
+    }
+    @Bean
+    public KickoutSessionFilter kickoutSessionFilter(){
+        KickoutSessionFilter kickoutSessionFilter = new KickoutSessionFilter();
+        kickoutSessionFilter.setLoginUrl();
+        return kickoutSessionFilter;
     }
 }

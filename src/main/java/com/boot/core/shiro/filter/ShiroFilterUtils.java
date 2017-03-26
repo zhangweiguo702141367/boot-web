@@ -1,5 +1,8 @@
 package com.boot.core.shiro.filter;
 
+import com.alibaba.fastjson.JSONObject;
+import com.boot.utils.LoggerUtils;
+
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Map;
@@ -8,9 +11,6 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 
-import com.sojson.common.utils.LoggerUtils;
-
-import net.sf.json.JSONObject;
 
 /**
  * 
@@ -52,7 +52,7 @@ public class ShiroFilterUtils {
 	
 	/**
 	 * response 输出JSON
-	 * @param hresponse
+	 * @param response
 	 * @param resultMap
 	 * @throws IOException
 	 */
@@ -62,7 +62,7 @@ public class ShiroFilterUtils {
 		try {
 			response.setCharacterEncoding("UTF-8");
 			out = response.getWriter();
-			out.println(JSONObject.fromObject(resultMap).toString());
+			out.println(JSONObject.toJSONString(resultMap));
 		} catch (Exception e) {
 			LoggerUtils.fmtError(CLAZZ, e, "输出JSON报错。");
 		}finally{

@@ -3,6 +3,7 @@ package com.boot.core.shiro;
 import java.io.Serializable;
 import java.util.Collection;
 
+import com.boot.core.shiro.session.ShiroSessionRepository;
 import com.boot.utils.LoggerUtils;
 import org.apache.shiro.session.Session;
 import org.apache.shiro.session.UnknownSessionException;
@@ -29,7 +30,7 @@ import org.apache.shiro.session.mgt.eis.AbstractSessionDAO;
  */
 public class CustomShiroSessionDAO extends AbstractSessionDAO{ 
 	
-    private ShiroSessionRepository shiroSessionRepository;  
+    private ShiroSessionRepository shiroSessionRepository;
   
     public ShiroSessionRepository getShiroSessionRepository() {  
         return shiroSessionRepository;  
