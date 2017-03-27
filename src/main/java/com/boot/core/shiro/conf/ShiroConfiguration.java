@@ -1,12 +1,15 @@
 package com.boot.core.shiro.conf;
 
 import com.boot.core.shiro.CustomShiroSessionDAO;
+import com.boot.core.shiro.cache.JedisManager;
 import com.boot.core.shiro.cache.JedisShiroSessionRepository;
 import com.boot.core.shiro.cache.impl.CustomShiroCacheManager;
+import com.boot.core.shiro.cache.impl.JedisShiroCacheManager;
 import com.boot.core.shiro.filter.*;
 import com.boot.core.shiro.listener.CustomSessionListener;
 import com.boot.core.shiro.session.CustomSessionManager;
 import com.boot.core.shiro.tooken.MyShiroRealm;
+import com.boot.utils.SpringUtil;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.cache.CacheManager;
 import org.apache.shiro.mgt.RememberMeManager;
@@ -27,6 +30,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.MethodInvokingFactoryBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import redis.clients.jedis.JedisPool;
+import redis.clients.jedis.JedisPoolConfig;
 
 import javax.servlet.Filter;
 import java.util.*;
@@ -36,15 +41,19 @@ import java.util.*;
  */
 @Configuration
 public class ShiroConfiguration {
+
+    public static final String LOGINURL = "/login";
+    public static final String SUCCESSURL = "/success";
+    public static final String UNAUTHORIZEDURL = "/unauthorized";
     private static Logger logger = LoggerFactory.getLogger(ShiroConfiguration.class);
 
     @Bean
     public ShiroFilterFactoryBean shiroFilter(){
         ShiroFilterFactoryBean shiroFilter = new ShiroFilterFactoryBean();
         shiroFilter.setSecurityManager(securityManager());
-        shiroFilter.setLoginUrl();
-        shiroFilter.setSuccessUrl();
-        shiroFilter.setUnauthorizedUrl();
+        shiroFilter.setLoginUrl(LOGINURL);
+        shiroFilter.setSuccessUrl(SUCCESSURL);
+        shiroFilter.setUnauthorizedUrl(UNAUTHORIZEDURL);
         Map<String,Filter> filters = new HashMap<String,Filter>();
         filters.put("login",loginFilter());
         filters.put("role",roleFilter());
@@ -56,6 +65,11 @@ public class ShiroConfiguration {
         //配置退出过滤器,其中的具体的退出代码Shiro已经替我们实现了
         filterChainDefinitionMap.put("/logout", "logout");
         filterChainDefinitionMap.put("/login", "authc");
+        filterChainDefinitionMap.put("/validatecodeServlet", "anon");
+        filterChainDefinitionMap.put("/userDelete", "perms[userInfo:del]");
+        filterChainDefinitionMap.put("/userAdd", "perms[userInfo:add]");
+        filterChainDefinitionMap.put("/static/**", "anon");
+        filterChainDefinitionMap.put("/**", "user");
         shiroFilter.setFilterChainDefinitionMap(filterChainDefinitionMap);
         return shiroFilter;
     }
@@ -82,7 +96,7 @@ public class ShiroConfiguration {
        return myShiroRealm;
     }
     @Bean
-    public SessionManager sessionManager(){
+    public DefaultWebSessionManager sessionManager(){
         DefaultWebSessionManager sessionManager = new DefaultWebSessionManager();
         sessionManager.setSessionValidationInterval(1800000L);
         sessionManager.setGlobalSessionTimeout(1800000L);
@@ -90,7 +104,7 @@ public class ShiroConfiguration {
         List<SessionListener> listenerList = new ArrayList<SessionListener>();
         listenerList.add(customSessionListener());
         sessionManager.setSessionListeners(listenerList);
-        sessionManager.setSessionValidationScheduler(sessionValidationScheduler());
+//        sessionManager.setSessionValidationScheduler(sessionValidationScheduler());
         sessionManager.setSessionValidationSchedulerEnabled(true);
         sessionManager.setDeleteInvalidSessions(true);
         sessionManager.setSessionIdCookie(sessionIdCookie());
@@ -99,13 +113,21 @@ public class ShiroConfiguration {
     @Bean
     public CacheManager cacheManager(){
         CustomShiroCacheManager cacheManager = new CustomShiroCacheManager();
+        cacheManager.setShiroCacheManager(jedisShiroCacheManager());
         return cacheManager;
+    }
+    @Bean
+    public JedisShiroCacheManager jedisShiroCacheManager(){
+        JedisShiroCacheManager jedisShiroCacheManager = new JedisShiroCacheManager();
+        jedisShiroCacheManager.setJedisManager(jedisManager());
+        return jedisShiroCacheManager;
     }
     @Bean
     public RememberMeManager rememberMeManager(){
         CookieRememberMeManager rememberMeManager = new CookieRememberMeManager();
-        rememberMeManager.setCipherKey();
+//        rememberMeManager.setCipherKey();
         rememberMeManager.setCookie(simpleCookie());
+        return rememberMeManager;
     }
     //Shiro生命周期处理器
     @Bean
@@ -113,12 +135,12 @@ public class ShiroConfiguration {
         LifecycleBeanPostProcessor lifecycleBeanPostProcessor =  new LifecycleBeanPostProcessor();
         return lifecycleBeanPostProcessor;
     }
-    @Bean
-    public MethodInvokingFactoryBean methodInvokingFactoryBean(){
-        MethodInvokingFactoryBean methodInvokingFactoryBean =  new MethodInvokingFactoryBean();
-        methodInvokingFactoryBean.setArguments();
-        methodInvokingFactoryBean.setStaticMethod(SecurityUtils.setSecurityManager());
-    }
+//    @Bean
+//    public MethodInvokingFactoryBean methodInvokingFactoryBean(){
+//        MethodInvokingFactoryBean methodInvokingFactoryBean =  new MethodInvokingFactoryBean();
+//        methodInvokingFactoryBean.setArguments();
+//        methodInvokingFactoryBean.setStaticMethod(SecurityUtils.setSecurityManager());
+//    }
     @Bean
     public SimpleCookie simpleCookie(){
         SimpleCookie rememberCookie =  new SimpleCookie("v_v-re-baidu");
@@ -156,14 +178,20 @@ public class ShiroConfiguration {
     @Bean
     public JedisShiroSessionRepository jedisShiroSessionRepository(){
         JedisShiroSessionRepository jedisShiroSessionRepository  = new JedisShiroSessionRepository();
-        jedisShiroSessionRepository.setJedisManager();
+        jedisShiroSessionRepository.setJedisManager(jedisManager());
         return jedisShiroSessionRepository;
+    }
+    @Bean
+    public JedisManager jedisManager(){
+        JedisManager jedisManager = new JedisManager();
+        jedisManager.setJedisPool(jedisPool());
+        return jedisManager;
     }
     @Bean
     public SessionValidationScheduler sessionValidationScheduler(){
         ExecutorServiceSessionValidationScheduler sessionValidationScheduler = new ExecutorServiceSessionValidationScheduler();
         sessionValidationScheduler.setInterval(18000000);
-        sessionValidationScheduler.setSessionManager();
+        sessionValidationScheduler.setSessionManager(sessionManager());
         return sessionValidationScheduler;
     }
     @Bean
@@ -192,7 +220,20 @@ public class ShiroConfiguration {
     @Bean
     public KickoutSessionFilter kickoutSessionFilter(){
         KickoutSessionFilter kickoutSessionFilter = new KickoutSessionFilter();
-        kickoutSessionFilter.setLoginUrl();
+        kickoutSessionFilter.setLoginUrl(LOGINURL);
         return kickoutSessionFilter;
+    }
+    @Bean
+    public JedisPoolConfig jedisPoolConfig(){
+        JedisPoolConfig jedisPoolConfig = new JedisPoolConfig();
+        jedisPoolConfig.setMaxIdle(100);
+        jedisPoolConfig.setMinIdle(10);
+        jedisPoolConfig.setTestOnBorrow(true);
+        return jedisPoolConfig;
+    }
+    @Bean
+    public JedisPool jedisPool(){
+        JedisPool jedisPool = new JedisPool(jedisPoolConfig(),"192.168.75.134",6379,5000);
+        return jedisPool;
     }
 }

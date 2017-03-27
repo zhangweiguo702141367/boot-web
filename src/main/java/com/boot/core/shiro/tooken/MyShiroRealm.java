@@ -22,7 +22,9 @@ public class MyShiroRealm extends AuthorizingRealm {
      */
     @Override
     protected AuthorizationInfo doGetAuthorizationInfo(PrincipalCollection principalCollection) {
+        System.out.print("enter doGetAuthorizationInfo");
         return null;
+
     }
 
 
@@ -31,6 +33,7 @@ public class MyShiroRealm extends AuthorizingRealm {
      */
     @Override
     protected AuthenticationInfo doGetAuthenticationInfo(AuthenticationToken authenticationToken) throws AuthenticationException {
+        System.out.print("enter doGetAuthenticationInfo");
         return null;
     }
     /**
