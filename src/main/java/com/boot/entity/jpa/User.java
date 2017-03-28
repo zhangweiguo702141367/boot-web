@@ -27,7 +27,7 @@ public class User implements Serializable{
     private Long createTime;
     @Column(name = "last_login_time")
     private Date lastLoginTime;
-    private boolean status;
+    private Integer status;
     @JoinTable(name="user_role",//中间表的名称
             joinColumns={@JoinColumn(name="userId",referencedColumnName="id")},//中间表PRODUCT_ID字段关联PRODUCT的ID
             inverseJoinColumns={@JoinColumn(name="roleId",referencedColumnName="id")})//中间表CATEGORY_ID字段关联CATEGORY的ID
@@ -44,16 +44,16 @@ public class User implements Serializable{
         this.pswd = user.getPswd();
         this.createTime = user.getCreateTime();
         this.lastLoginTime = user.getLastLoginTime();
+        this.status = user.getStatus();
     }
 
-    public User(String nickname, String email, String pswd, Long createTime, Date lastLoginTime, boolean status, List<Role> roles) {
+    public User(String nickname, String email, String pswd, Long createTime, Date lastLoginTime, Integer status) {
         this.nickname = nickname;
         this.email = email;
         this.pswd = pswd;
         this.createTime = createTime;
         this.lastLoginTime = lastLoginTime;
         this.status = status;
-        this.roles = roles;
     }
 
     public Long getId() {
@@ -104,11 +104,11 @@ public class User implements Serializable{
         this.lastLoginTime = lastLoginTime;
     }
 
-    public boolean isStatus() {
+    public Integer getStatus() {
         return status;
     }
 
-    public void setStatus(boolean status) {
+    public void setStatus(Integer status) {
         this.status = status;
     }
 
